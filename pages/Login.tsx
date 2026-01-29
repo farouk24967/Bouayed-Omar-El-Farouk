@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Mail, Lock, Loader2, CheckCircle } from 'lucide-react';
+import { Activity, Mail, Lock, Loader2, CheckCircle, User, ArrowRight, Github } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -11,14 +11,18 @@ declare global {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
 
+  // Form states
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     /* global google */
     if (window.google) {
       window.google.accounts.id.initialize({
-        client_id: "721759664536-q36259psb9vshnt5f2q3p5p1t0vnt0v5.apps.googleusercontent.com", // Demo ID - User should replace with their own
+        client_id: "721759664536-q36259psb9vshnt5f2q3p5p1t0vnt0v5.apps.googleusercontent.com",
         callback: handleGoogleResponse
       });
       window.google.accounts.id.renderButton(
@@ -26,11 +30,10 @@ const Login: React.FC = () => {
         { theme: "outline", size: "large", width: "100%", text: "continue_with", shape: "pill" }
       );
     }
-  }, []);
+  }, [mode]);
 
   const handleGoogleResponse = (response: any) => {
     setIsLoading(true);
-    // Parse JWT to get email (this is basic, normally done on backend for security)
     const base64Url = response.credential.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
@@ -38,137 +41,198 @@ const Login: React.FC = () => {
     }).join(''));
 
     const user = JSON.parse(jsonPayload);
+
+    // Check if account exists
+    const existingDb = localStorage.getItem(`medic_pro_db_${user.email}`);
+
     localStorage.setItem('medic_pro_auth', 'true');
     localStorage.setItem('medic_pro_user_email', user.email);
     localStorage.setItem('medic_pro_user_name', user.name);
 
     setTimeout(() => {
       setIsLoading(false);
+      // If it's a new user (no DB), they will see setup wizard in /generator automatically
       navigate('/generator');
     }, 1000);
   };
 
-  const handleLogin = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!email) {
-      alert("Veuillez saisir votre email");
-      return;
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
-    // Simulation d'une authentification réelle
-    setTimeout(() => {
+
+    if (mode === 'signup') {
+      // Create account
+      const userData = { name, email, password };
+      localStorage.setItem(`medic_pro_user_meta_${email}`, JSON.stringify(userData));
       localStorage.setItem('medic_pro_auth', 'true');
       localStorage.setItem('medic_pro_user_email', email);
-      setIsLoading(false);
-      navigate('/generator');
-    }, 1500);
+      localStorage.setItem('medic_pro_user_name', name);
+
+      setTimeout(() => {
+        setIsLoading(false);
+        navigate('/generator'); // Will start setup wizard because medic_pro_db_email doesn't exist yet
+      }, 1500);
+    } else {
+      // Login
+      const storedUser = localStorage.getItem(`medic_pro_user_meta_${email}`);
+      const userData = storedUser ? JSON.parse(storedUser) : null;
+
+      if (!userData && !localStorage.getItem(`medic_pro_db_${email}`)) {
+        alert("Compte introuvable. Veuillez vous inscrire.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Basic password check if metadata exists
+      if (userData && userData.password !== password) {
+        alert("Mot de passe incorrect.");
+        setIsLoading(false);
+        return;
+      }
+
+      localStorage.setItem('medic_pro_auth', 'true');
+      localStorage.setItem('medic_pro_user_email', email);
+      localStorage.setItem('medic_pro_user_name', userData?.name || email.split('@')[0]);
+
+      setTimeout(() => {
+        setIsLoading(false);
+        navigate('/generator');
+      }, 1200);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/20">
-            <Activity className="h-8 w-8 text-white" />
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+      <div className="max-w-[1000px] w-full bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col md:flex-row border border-slate-100">
+
+        {/* Left Side: Branding / Info */}
+        <div className="md:w-1/2 bg-slate-900 p-12 text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+
+          <div className="relative z-10">
+            <div className="bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-md mb-8">
+              <Activity className="h-6 w-6 text-blue-400" />
+            </div>
+            <h1 className="text-4xl font-extrabold mb-4 tracking-tight leading-tight">
+              Tout commence <br />ici.
+            </h1>
+            <p className="text-slate-400 text-lg leading-relaxed">
+              Simplifiez la gestion de votre cabinet avec l'IA la plus avancée adaptée au marché algérien.
+            </p>
+          </div>
+
+          <div className="relative z-10 space-y-4">
+            <div className="flex items-center gap-3 text-sm text-slate-300">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Plus de 500 médecins inscrits</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-slate-300">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Sécurité des données garantie</span>
+            </div>
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
-          Connexion à votre espace
-        </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
-          Gérez votre cabinet médical en toute sécurité
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100">
-
-          {/* Real Google Login Container */}
-          <div id="googleBtn" className="w-full mb-6 min-h-[50px]"></div>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-slate-500">Ou avec email</span>
-            </div>
-          </div>
-
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
-                Email professionnel
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3"
-                  placeholder="dr.nom@clinique.dz"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-                Mot de passe
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900">
-                  Se souvenir de moi
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                  Mot de passe oublié ?
-                </a>
-              </div>
-            </div>
-
-            <div>
+        {/* Right Side: Form */}
+        <div className="md:w-1/2 p-12 lg:p-16">
+          <div className="mb-10">
+            <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-8">
               <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors"
+                onClick={() => setMode('login')}
+                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mode === 'login' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Se connecter'}
+                Se connecter
+              </button>
+              <button
+                onClick={() => setMode('signup')}
+                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${mode === 'signup' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                S'inscrire
               </button>
             </div>
+
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              {mode === 'login' ? 'Bon retour parmi nous' : 'Créer votre compte'}
+            </h2>
+            <p className="text-slate-500 text-sm">
+              {mode === 'login' ? 'Entrez vos identifiants pour accéder à votre espace.' : 'Commencez à gérer votre cabinet en quelques secondes.'}
+            </p>
+          </div>
+
+          {/* Google Auth Container */}
+          <div id="googleBtn" className="w-full mb-8 min-h-[46px]"></div>
+
+          <div className="relative mb-8 text-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-100"></div>
+            </div>
+            <span className="relative px-4 bg-white text-xs font-bold text-slate-400 uppercase tracking-widest">Ou email</span>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase px-1">Nom complet</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    required
+                    type="text"
+                    placeholder="Dr. Nom Prénom"
+                    className="w-full bg-slate-50 border-none rounded-2xl px-12 py-4 text-sm focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase px-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  required
+                  type="email"
+                  placeholder="nom@exemple.com"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-12 py-4 text-sm focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase px-1">Mot de passe</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  required
+                  type="password"
+                  placeholder="••••••••"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-12 py-4 text-sm focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-slate-900 text-white rounded-2xl py-4 font-bold text-sm hover:bg-slate-800 transition-all flex items-center justify-center shadow-lg shadow-slate-200 mt-4 h-14"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin h-5 w-5" />
+              ) : (
+                <>
+                  {mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </button>
           </form>
         </div>
-        <p className="mt-6 text-center text-xs text-slate-500">
-          En vous connectant, vous acceptez nos <a href="#" className="font-bold">Conditions Générales</a> et notre <a href="#" className="font-bold">Politique de Confidentialité</a>.
-        </p>
       </div>
     </div>
   );

@@ -994,8 +994,19 @@ const Generator: React.FC = () => {
           </nav>
         </div>
 
-        <div className="mt-auto p-6">
-          <div className="bg-slate-50 p-5 rounded-[1.5rem] relative overflow-hidden group hover:bg-slate-100 transition-colors cursor-pointer">
+        <div className="mt-auto p-6 space-y-4">
+          <button
+            onClick={() => {
+              localStorage.removeItem('medic_pro_auth');
+              navigate('/login');
+            }}
+            className="w-full flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-2xl font-bold transition-all group"
+          >
+            <Lock className="h-5 w-5 group-hover:scale-110 transition-transform" />
+            <span className="text-sm">Déconnexion</span>
+          </button>
+
+          <div className="bg-slate-50 p-5 rounded-[1.5rem] relative overflow-hidden">
             <div className="flex items-center gap-3">
               <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
               <div>
