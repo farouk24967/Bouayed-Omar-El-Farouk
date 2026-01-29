@@ -1,9 +1,5 @@
-export enum Specialty {
-  GENERALISTE = 'Généraliste',
-  DENTISTE = 'Dentiste',
-  PEDIATRE = 'Pédiatre',
-  MULTI = 'Multispecialité'
-}
+
+export type Specialty = string;
 
 export interface KpiData {
   label: string;
@@ -36,6 +32,15 @@ export interface Appointment {
   status: 'Confirmé' | 'En attente' | 'Annulé';
 }
 
+export interface Payment {
+  id: string;
+  amount: number;
+  date: string;
+  patientName: string;
+  method: 'Espèces' | 'Carte' | 'Chèque' | 'Virement';
+  note?: string;
+}
+
 export interface DashboardData {
   clinicName: string;
   specialty: string;
@@ -50,6 +55,7 @@ export interface DashboardData {
 export interface FormData {
   clinicName: string;
   primaryColor: string;
-  specialty: Specialty;
+  specialty: string;
+  category: string;
   logo: string | null;
 }

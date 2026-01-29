@@ -1,12 +1,31 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Activity, Menu, X, ChevronRight, Github, Twitter, Linkedin } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Activity, Menu, X, ChevronRight, Github, Twitter, Linkedin, LogOut, User } from 'lucide-react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  const isAuthenticated = localStorage.getItem('medic_pro_auth') === 'true';
+  const userEmail = localStorage.getItem('medic_pro_user_email');
+
+  const handleLogout = () => {
+    localStorage.removeItem('medic_pro_auth');
+    localStorage.removeItem('medic_pro_user_email');
+    navigate('/');
+  };
 
   const isActive = (path: string) => location.pathname === path ? 'text-blue-600 font-semibold' : 'text-slate-600 hover:text-blue-600';
+
+  // If in generator (Dashboard), we might want a different layout, but for now we keep the header/footer 
+  // structure but simplify the header inside the dashboard. 
+  // Actually, for the Dashboard view (Generator), we often hide the main marketing header.
+  const isDashboard = location.pathname === '/generator';
+
+  if (isDashboard) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -28,9 +47,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <Link to="/pricing" className={isActive('/pricing')}>Tarifs</Link>
               <Link to="/about" className={isActive('/about')}>À Propos</Link>
               <Link to="/contact" className={isActive('/contact')}>Contact</Link>
-              <Link to="/generator" className="bg-blue-600 text-white px-5 py-2 rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20">
-                Créer mon dashboard
-              </Link>
+              
+              {isAuthenticated ? (
+                 <div className="flex items-center space-x-4 ml-4">
+                    <Link to="/generator" className="text-sm font-medium text-slate-900 hover:text-blue-600">
+                      Mon Espace
+                    </Link>
+                    <button onClick={handleLogout} className="text-sm text-red-500 hover:text-red-700 flex items-center">
+                      <LogOut className="h-4 w-4 mr-1" /> Déconnexion
+                    </button>
+                    <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-xs">
+                      {userEmail ? userEmail.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                 </div>
+              ) : (
+                <Link to="/login" className="bg-slate-900 text-white px-5 py-2 rounded-full font-medium hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20">
+                  Connexion
+                </Link>
+              )}
             </nav>
 
             {/* Mobile menu button */}
@@ -46,10 +80,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="block text-slate-600 font-medium">Accueil</Link>
             <Link to="/features" onClick={() => setIsMenuOpen(false)} className="block text-slate-600 font-medium">Fonctionnalités</Link>
             <Link to="/pricing" onClick={() => setIsMenuOpen(false)} className="block text-slate-600 font-medium">Tarifs</Link>
-            <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block text-slate-600 font-medium">À Propos</Link>
-             <Link to="/generator" onClick={() => setIsMenuOpen(false)} className="block w-full text-center bg-blue-600 text-white px-5 py-2 rounded-lg font-medium">
-                Créer mon dashboard
+            {isAuthenticated ? (
+              <>
+                <Link to="/generator" onClick={() => setIsMenuOpen(false)} className="block text-blue-600 font-bold">Accéder au Dashboard</Link>
+                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="block text-red-500 font-medium">Déconnexion</button>
+              </>
+            ) : (
+               <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block w-full text-center bg-blue-600 text-white px-5 py-2 rounded-lg font-medium">
+                Connexion
               </Link>
+            )}
           </div>
         )}
       </header>
@@ -78,7 +118,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div>
               <h4 className="text-white font-semibold mb-4">Produit</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/generator" className="hover:text-blue-400">Générateur IA</Link></li>
+                <li><Link to="/login" className="hover:text-blue-400">Connexion</Link></li>
                 <li><Link to="/features" className="hover:text-blue-400">Fonctionnalités</Link></li>
                 <li><Link to="/pricing" className="hover:text-blue-400">Tarifs</Link></li>
               </ul>
