@@ -80,8 +80,29 @@ interface DatabaseSchema {
 }
 
 const loadDatabase = (): DatabaseSchema | null => {
-  const data = localStorage.getItem(getDbKey());
-  return data ? JSON.parse(data) : null;
+  try {
+    const data = localStorage.getItem(getDbKey());
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+
+    // Migration / Fallbacks for old data
+    if (parsed && !parsed.dashboardStats) {
+      parsed.dashboardStats = { kpis: [], monthly: [], distribution: [], recommendations: [] };
+    }
+    if (parsed && parsed.dashboardStats && !parsed.dashboardStats.distribution) {
+      parsed.dashboardStats.distribution = [];
+    }
+    if (parsed && !parsed.payments) parsed.payments = [];
+    if (parsed && !parsed.appointments) parsed.appointments = [];
+    if (parsed && !parsed.branding) {
+      parsed.branding = { clinicName: 'Cabinet', primaryColor: '#0f172a', secondaryColor: '#3b82f6', specialty: 'Généraliste', category: 'Médecins généralistes', logo: null };
+    }
+
+    return parsed;
+  } catch (e) {
+    console.error("Failed to load database", e);
+    return null;
+  }
 };
 
 const saveDatabase = (data: DatabaseSchema) => {
