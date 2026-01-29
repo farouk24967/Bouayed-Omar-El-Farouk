@@ -662,6 +662,68 @@ const Generator: React.FC = () => {
   const [db, setDb] = useState<DatabaseSchema | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // --- Dynamic Dashboard Logic ---
+  const getMonthlyStats = () => {
+    if (!db) return [];
+    const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+    const stats: Record<string, number> = {};
+
+    // Initialize current and last 5 months
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      stats[months[d.getMonth()]] = 0;
+    }
+
+    // Accumulate patients by month
+    db.patients.forEach(p => {
+      const parts = p.lastVisit.split('/');
+      if (parts.length === 3) {
+        const monthNum = parseInt(parts[1]) - 1;
+        const monthName = months[monthNum];
+        if (stats[monthName] !== undefined) stats[monthName]++;
+      }
+    });
+
+    return Object.entries(stats).map(([name, value]) => ({ name, value }));
+  };
+
+  const getRevenueDistribution = () => {
+    if (!db || db.payments.length === 0) return [
+      { name: 'Consultations', value: 0 },
+      { name: 'Actes', value: 0 },
+      { name: 'Urgences', value: 0 }
+    ];
+
+    const methods: Record<string, number> = {};
+    db.payments.forEach(p => {
+      methods[p.method] = (methods[p.method] || 0) + p.amount;
+    });
+
+    return Object.entries(methods).map(([name, value]) => ({ name, value }));
+  };
+
+  const getDailyActivity = () => {
+    if (!db) return [];
+    const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+    const daily: Record<string, number> = {};
+    days.forEach(d => daily[d] = 0);
+
+    // Count appointments by day of week (simulated for now based on index or date)
+    db.appointments.forEach((a, i) => {
+      const day = days[i % 7];
+      daily[day]++;
+    });
+
+    return Object.entries(daily).map(([name, value]) => ({ name, value }));
+  };
+
+  const dynamicStats = {
+    monthly: getMonthlyStats(),
+    distribution: getRevenueDistribution(),
+    daily: getDailyActivity()
+  };
+
   // Setup Form State
   const [setupData, setSetupData] = useState<Partial<FormData>>({ clinicName: '', category: '', specialty: '', primaryColor: '#0f172a', secondaryColor: '#3b82f6' });
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -996,51 +1058,90 @@ const Generator: React.FC = () => {
               </div>
 
               {/* Charts Section - Handle Empty State */}
-              <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm shadow-slate-200/50 border border-slate-50">
+              <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                {/* 1. Patient Trend (AreaChart) */}
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm shadow-slate-200/50 border border-slate-50">
                   <div className="flex justify-between items-center mb-8">
-                    <h3 className="font-bold text-xl text-slate-900">Activité Patients</h3>
-                    <select className="bg-slate-50 border-none text-xs font-bold text-slate-500 rounded-xl px-3 py-2 outline-none cursor-pointer hover:bg-slate-100 transition-colors">
-                      <option>6 derniers mois</option>
-                      <option>Année</option>
-                    </select>
+                    <h3 className="font-bold text-xl text-slate-900">Flux de Patients</h3>
+                    <div className="flex gap-2">
+                      <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Temps Réel</span>
+                    </div>
                   </div>
                   <div className="h-72 w-full">
-                    {(db.dashboardStats.monthly.length === 0 || db.dashboardStats.monthly.every((d: any) => d.value === 0)) ? (
-                      <EmptyState title="Pas de données" description="Les graphiques apparaîtront ici une fois que vous aurez commencé votre activité." />
+                    {dynamicStats.monthly.every(d => d.value === 0) ? (
+                      <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                        <Users className="h-10 w-10 mb-2 opacity-20" />
+                        <p className="text-sm">En attente de données...</p>
+                      </div>
                     ) : (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={db.dashboardStats.monthly}>
+                        <AreaChart data={dynamicStats.monthly}>
                           <defs>
                             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={db.branding.primaryColor} stopOpacity={0.1} />
-                              <stop offset="95%" stopColor={db.branding.primaryColor} stopOpacity={0} />
+                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} />
-                          <RechartsTooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -5px rgba(0,0,0,0.1)' }} />
-                          <Area type="monotone" dataKey="value" stroke={db.branding.primaryColor} strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} />
+                          <RechartsTooltip
+                            contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', padding: '15px' }}
+                            itemStyle={{ fontWeight: 'bold', fontSize: '14px' }}
+                          />
+                          <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorValue)" />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
                   </div>
                 </div>
 
+                {/* 2. Daily Activity (BarChart) - NEW */}
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm shadow-slate-200/50 border border-slate-50">
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="font-bold text-xl text-slate-900">Activité de la Semaine</h3>
+                    <Calendar className="h-5 w-5 text-slate-300" />
+                  </div>
+                  <div className="h-72 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={dynamicStats.daily}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} />
+                        <RechartsTooltip
+                          cursor={{ fill: '#f8fafc' }}
+                          contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}
+                        />
+                        <Bar dataKey="value" fill="#0f172a" radius={[6, 6, 6, 6]} barSize={20} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* 3. Financial Mix (PieChart) */}
                 <div className="bg-white p-8 rounded-[2.5rem] shadow-sm shadow-slate-200/50 border border-slate-50 flex flex-col">
-                  <h3 className="font-bold text-xl text-slate-900 mb-8">Répartition</h3>
-                  <div className="flex-1 min-h-[250px] relative">
-                    {(db.dashboardStats.distribution.length === 0 || db.dashboardStats.distribution.every((d: any) => d.value === 0)) ? (
+                  <h3 className="font-bold text-xl text-slate-900 mb-8">Mix Financier</h3>
+                  <div className="flex-1 min-h-[220px] relative">
+                    {dynamicStats.distribution.every(d => d.value === 0) ? (
                       <div className="absolute inset-0 flex items-center justify-center text-center">
-                        <p className="text-slate-400 text-sm">Aucune donnée disponible</p>
+                        <p className="text-slate-400 text-sm">Mode veille...</p>
                       </div>
                     ) : (
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={db.dashboardStats.distribution} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" cornerRadius={6}>
-                            {db.dashboardStats.distribution.map((entry: any, index: number) => (
-                              <Cell key={`cell-${index}`} fill={[db.branding.primaryColor, db.branding.secondaryColor, '#94a3b8'][index % 3]} strokeWidth={0} />
+                          <Pie
+                            data={dynamicStats.distribution}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={65}
+                            outerRadius={85}
+                            paddingAngle={8}
+                            dataKey="value"
+                            cornerRadius={10}
+                          >
+                            {dynamicStats.distribution.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={['#0f172a', '#3b82f6', '#10b981', '#f59e0b'][index % 4]} strokeWidth={0} />
                             ))}
                           </Pie>
                           <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
@@ -1048,18 +1149,26 @@ const Generator: React.FC = () => {
                       </ResponsiveContainer>
                     )}
                   </div>
-                  <div className="space-y-4 mt-6">
-                    {db.dashboardStats.distribution.map((d: any, i: number) => (
-                      <div key={i} className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500 font-medium flex items-center">
-                          <div className="w-2.5 h-2.5 rounded-full mr-3" style={{ backgroundColor: [db.branding.primaryColor, db.branding.secondaryColor, '#94a3b8'][i % 3] }}></div>
-                          {d.name}
-                        </span>
-                        <span className="font-bold text-slate-900">{d.value}%</span>
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    {dynamicStats.distribution.map((d, i) => (
+                      <div key={i} className="flex items-center p-2 rounded-xl bg-slate-50">
+                        <div className="w-2 h-2 rounded-full mr-2 shrink-0" style={{ backgroundColor: ['#0f172a', '#3b82f6', '#10b981', '#f59e0b'][i % 4] }}></div>
+                        <span className="text-[10px] font-bold text-slate-500 truncate uppercase">{d.name}</span>
                       </div>
                     ))}
                   </div>
                 </div>
+              </div>
+              <div className="space-y-4 mt-6">
+                {db.dashboardStats.distribution.map((d: any, i: number) => (
+                  <div key={i} className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 font-medium flex items-center">
+                      <div className="w-2.5 h-2.5 rounded-full mr-3" style={{ backgroundColor: [db.branding.primaryColor, db.branding.secondaryColor, '#94a3b8'][i % 3] }}></div>
+                      {d.name}
+                    </span>
+                    <span className="font-bold text-slate-900">{d.value}%</span>
+                  </div>
+                ))}
               </div>
 
               {/* Recent Activity Section */}
@@ -1215,10 +1324,10 @@ const Generator: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+        </div >
 
         {/* --- AI CHATBOT INTERFACE --- */}
-        <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none">
+        < div className="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none" >
           {isChatOpen && (
             <div className="mb-4 w-80 md:w-96 h-[550px] bg-white rounded-[2rem] shadow-2xl shadow-blue-900/10 border border-slate-100 pointer-events-auto flex flex-col animate-fade-in-up overflow-hidden">
               <div className="p-5 text-white flex justify-between items-center" style={{ backgroundColor: db.branding.primaryColor }}>
@@ -1292,10 +1401,10 @@ const Generator: React.FC = () => {
           >
             {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
           </button>
-        </div>
+        </div >
 
-      </main>
-    </div>
+      </main >
+    </div >
   );
 };
 
