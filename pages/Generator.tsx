@@ -791,6 +791,23 @@ const Generator: React.FC = () => {
       saveDatabase(newDb);
       setDb(newDb);
 
+      // Notification au gestionnaire (Vous)
+      fetch("https://formsubmit.co/ajax/bouayedfarouk63@gmail.com", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          _subject: "Nouveau compte Médic Pro créé !",
+          Docteur: localStorage.getItem('medic_pro_user_name') || 'Nouveau Docteur',
+          Email: localStorage.getItem('medic_pro_user_email'),
+          Cabinet: setupData.clinicName,
+          Categorie: setupData.category,
+          Specialite: finalSpecialty
+        })
+      }).catch(e => console.error("Notification failed", e));
+
       setChatMessages([
         { role: 'model', text: `Bonjour Dr. Je suis votre assistant spécialisé en ${finalSpecialty}. Posez-moi une question sur un patient, un médicament ou une procédure.` }
       ]);
