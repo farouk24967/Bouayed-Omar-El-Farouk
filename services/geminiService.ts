@@ -11,20 +11,18 @@ const generateDashboardData = async (clinicName: string, specialty: string): Pro
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Modified prompt to generate realistic data. 
-  // Note: While the user asked for "everything at zero", AI is typically used to populate data.
-  // The FALLBACK below handles the strict "zero state" requirement if generation fails or is bypassed.
+  // Modified prompt to generate STRUCTURE ONLY with ZERO VALUES.
   const prompt = `
-    Generate realistic medical practice management data for a new clinic in Algeria named "${clinicName}" specializing in "${specialty}".
+    Generate the data structure for a BRAND NEW medical clinic in Algeria named "${clinicName}" specializing in "${specialty}".
     
-    The data should be localized for Algeria (Currency: DA or DZD, Names: Algerian names).
+    IMPORTANT: This is a fresh account. ALL DATA MUST BE ZERO or EMPTY.
     
-    1. Generate 4 Key Performance Indicators (KPIs) (e.g., Patients/Jour, Revenus (in DA), Taux d'occupation).
-    2. Generate monthly patient evolution chart data (simulating a start of activity).
-    3. Generate revenue distribution chart data.
-    4. Provide 3 business recommendations for a new clinic.
-    5. Generate a list of 0 to 3 realistic patients (Algerian names).
-    6. Generate a list of 0 to 3 upcoming appointments.
+    1. Generate 4 Key Performance Indicators (KPIs) labels suitable for this specialty (e.g., Patients/Jour, Revenus), but strictly set values to "0" or "0 DA".
+    2. Generate monthly patient evolution chart labels (Jan-Jun) with value 0.
+    3. Generate revenue distribution chart categories with value 0.
+    4. Provide 3 tips/recommendations for STARTING this specific medical activity.
+    5. Return an EMPTY list for patients.
+    6. Return an EMPTY list for appointments.
   `;
 
   try {
@@ -110,20 +108,27 @@ const generateDashboardData = async (clinicName: string, specialty: string): Pro
 
     const parsedData = JSON.parse(jsonText);
 
+    // FORCE ZERO STATE LOGIC
+    // We strictly overwrite values to 0/empty to ensure "New Account" feel regardless of AI hallucination
     return {
       clinicName,
       specialty,
-      kpis: parsedData.kpis,
-      monthlyPatients: parsedData.monthlyPatients,
-      revenueDistribution: parsedData.revenueDistribution,
-      recommendations: parsedData.recommendations,
-      recentPatients: parsedData.recentPatients,
-      upcomingAppointments: parsedData.upcomingAppointments
+      kpis: parsedData.kpis.map((k: any) => ({
+        ...k,
+        value: k.label.toLowerCase().includes("revenu") ? "0 DA" : "0", 
+        trend: "0%",
+        trendDirection: "neutral"
+      })),
+      monthlyPatients: parsedData.monthlyPatients.map((m: any) => ({ ...m, value: 0 })),
+      revenueDistribution: parsedData.revenueDistribution.map((d: any) => ({ ...d, value: 0 })),
+      recommendations: parsedData.recommendations, // Keep recommendations, they are useful text
+      recentPatients: [], // Strictly empty
+      upcomingAppointments: [] // Strictly empty
     };
 
   } catch (error) {
     console.error("Gemini API Error:", error);
-    // Fallback data for Algeria context - ZERO STATE as requested
+    // Fallback data - Strictly Zero
     return {
       clinicName,
       specialty,

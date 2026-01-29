@@ -55,6 +55,7 @@ export interface DashboardData {
 export interface FormData {
   clinicName: string;
   primaryColor: string;
+  secondaryColor: string;
   specialty: string;
   category: string;
   logo: string | null;

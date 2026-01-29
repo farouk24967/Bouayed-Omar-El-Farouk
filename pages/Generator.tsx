@@ -71,9 +71,9 @@ interface DatabaseSchema {
   branding: FormData;
   patients: Patient[];
   appointments: Appointment[];
-  payments: Payment[]; // Added payments
-  monthlyGoal: number; // Added financial goal
-  dashboardStats: any; // Simplified for demo
+  payments: Payment[]; 
+  monthlyGoal: number; 
+  dashboardStats: any; 
 }
 
 const loadDatabase = (): DatabaseSchema | null => {
@@ -92,9 +92,10 @@ const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active: bool
     onClick={onClick}
     className={`w-full flex items-center space-x-3 px-5 py-4 rounded-2xl transition-all duration-300 group mb-1 ${
       active 
-        ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' 
+        ? 'text-white shadow-lg shadow-slate-200' 
         : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'
     }`}
+    style={{ backgroundColor: active ? color : 'transparent' }}
   >
     <div className={`${active ? 'text-white' : 'text-current group-hover:scale-110 transition-transform'}`}>
       {icon}
@@ -104,7 +105,7 @@ const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active: bool
   </button>
 );
 
-const EmptyState: React.FC<{ title: string, description: string, actionLabel?: string, onAction?: () => void }> = ({ title, description, actionLabel, onAction }) => (
+const EmptyState: React.FC<{ title: string, description: string, actionLabel?: string, onAction?: () => void, color?: string }> = ({ title, description, actionLabel, onAction, color }) => (
   <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200 h-full min-h-[300px]">
     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
       <Sparkles className="h-6 w-6 text-slate-300" />
@@ -112,7 +113,11 @@ const EmptyState: React.FC<{ title: string, description: string, actionLabel?: s
     <h3 className="text-lg font-bold text-slate-900 mb-1">{title}</h3>
     <p className="text-slate-500 mb-6 max-w-sm">{description}</p>
     {actionLabel && onAction && (
-      <button onClick={onAction} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5">
+      <button 
+        onClick={onAction} 
+        className="px-5 py-2.5 text-white rounded-xl font-bold text-sm shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5"
+        style={{ backgroundColor: color || '#0f172a' }}
+      >
         {actionLabel}
       </button>
     )}
@@ -184,7 +189,8 @@ const PatientsView: React.FC<{
           </div>
           <button 
             onClick={handleNewClick}
-            className="px-6 py-3 bg-slate-900 text-white rounded-2xl flex items-center font-bold shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5 whitespace-nowrap"
+            className="px-6 py-3 text-white rounded-2xl flex items-center font-bold shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5 whitespace-nowrap"
+            style={{ backgroundColor: color }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Nouveau
@@ -240,7 +246,11 @@ const PatientsView: React.FC<{
             </div>
             <div className="flex justify-end gap-3 mt-10">
               <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-bold transition-colors">Annuler</button>
-              <button type="submit" className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-200 transition-all hover:shadow-xl hover:-translate-y-0.5">
+              <button 
+                type="submit" 
+                className="px-8 py-3 text-white rounded-xl font-bold shadow-lg shadow-slate-200 transition-all hover:shadow-xl hover:-translate-y-0.5"
+                style={{ backgroundColor: color }}
+              >
                 {isEditing ? 'Mettre à jour' : 'Créer le dossier'}
               </button>
             </div>
@@ -254,6 +264,7 @@ const PatientsView: React.FC<{
           description="Commencez par ajouter votre premier dossier patient pour peupler cette liste."
           actionLabel="Ajouter un patient"
           onAction={handleNewClick}
+          color={color}
         />
       ) : (
         <div className="bg-white rounded-[2rem] shadow-sm shadow-slate-200/50 overflow-hidden border border-slate-100">
@@ -338,7 +349,11 @@ const AgendaView: React.FC<{
         <div className="space-y-6 animate-fade-in">
              <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-extrabold text-slate-900">Agenda</h2>
-                <button onClick={() => { setIsEditing(false); setCurrentAppt({}); setShowForm(true); }} className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center">
+                <button 
+                  onClick={() => { setIsEditing(false); setCurrentAppt({}); setShowForm(true); }} 
+                  className="px-6 py-3 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center"
+                  style={{ backgroundColor: color }}
+                >
                     <Plus className="h-4 w-4 mr-2" /> Nouveau RDV
                 </button>
             </div>
@@ -361,7 +376,7 @@ const AgendaView: React.FC<{
                          </div>
                          <div className="mt-8 flex justify-end gap-3">
                              <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">Annuler</button>
-                             <button type="submit" className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-200">Sauvegarder</button>
+                             <button type="submit" className="px-8 py-3 text-white rounded-xl font-bold shadow-lg shadow-slate-200" style={{ backgroundColor: color }}>Sauvegarder</button>
                          </div>
                     </form>
                 </div>
@@ -373,6 +388,7 @@ const AgendaView: React.FC<{
                   description="Aucun rendez-vous planifié. Ajoutez votre premier rendez-vous."
                   actionLabel="Planifier un RDV"
                   onAction={() => { setIsEditing(false); setCurrentAppt({}); setShowForm(true); }}
+                  color={color}
                 />
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -409,10 +425,11 @@ const AgendaView: React.FC<{
 const FinanceView: React.FC<{ 
   db: DatabaseSchema, 
   color: string,
+  secondaryColor: string,
   onAddPayment: (p: Payment) => void,
   onUpdateGoal: (goal: number) => void,
   onDeletePayment: (id: string) => void
-}> = ({ db, color, onAddPayment, onUpdateGoal, onDeletePayment }) => {
+}> = ({ db, color, secondaryColor, onAddPayment, onUpdateGoal, onDeletePayment }) => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [newPayment, setNewPayment] = useState<Partial<Payment>>({ method: 'Espèces', date: new Date().toISOString().split('T')[0] });
   const [isEditingGoal, setIsEditingGoal] = useState(false);
@@ -456,7 +473,8 @@ const FinanceView: React.FC<{
          </div>
          <button 
            onClick={() => setShowPaymentForm(true)}
-           className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center"
+           className="px-6 py-3 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center"
+           style={{ backgroundColor: color }}
          >
            <Plus className="h-4 w-4 mr-2" />
            Encaisser
@@ -506,19 +524,19 @@ const FinanceView: React.FC<{
 
        <div className="grid md:grid-cols-3 gap-8">
           {/* Revenue Card */}
-          <div className="bg-slate-900 text-white p-8 rounded-[2rem] shadow-2xl shadow-slate-300/50 relative overflow-hidden group">
+          <div className="bg-slate-900 text-white p-8 rounded-[2rem] shadow-2xl shadow-slate-300/50 relative overflow-hidden group" style={{ backgroundColor: color }}>
              <div className="relative z-10">
                <div className="flex items-center gap-2 mb-2">
-                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Revenu Total</p>
+                 <p className="text-white/60 text-xs font-bold uppercase tracking-wider">Revenu Total</p>
                  <ArrowUpRight className="h-4 w-4 text-green-400" />
                </div>
-               <h3 className="text-5xl font-extrabold mb-6 tracking-tight">{totalRevenue.toLocaleString('fr-DZ')} <span className="text-xl text-slate-500 font-medium">DA</span></h3>
-               <div className="flex items-center gap-3 text-sm text-slate-400 bg-white/10 w-fit px-3 py-1.5 rounded-lg backdrop-blur-sm">
+               <h3 className="text-5xl font-extrabold mb-6 tracking-tight">{totalRevenue.toLocaleString('fr-DZ')} <span className="text-xl text-white/50 font-medium">DA</span></h3>
+               <div className="flex items-center gap-3 text-sm text-white/60 bg-white/10 w-fit px-3 py-1.5 rounded-lg backdrop-blur-sm">
                   <Banknote className="h-4 w-4" />
                   <span>{db.payments.length} transactions</span>
                </div>
              </div>
-             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-500 rounded-full blur-[80px] opacity-30 group-hover:opacity-50 transition-opacity"></div>
+             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white rounded-full blur-[80px] opacity-10 group-hover:opacity-20 transition-opacity"></div>
           </div>
           
           {/* Goal Card */}
@@ -551,13 +569,13 @@ const FinanceView: React.FC<{
                       )}
                    </div>
                    <div className="text-right">
-                      <span className="text-2xl font-bold text-blue-600">{Math.min(100, Math.round(progress))}%</span>
+                      <span className="text-2xl font-bold" style={{ color: secondaryColor }}>{Math.min(100, Math.round(progress))}%</span>
                    </div>
                 </div>
                 <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden">
                    <div 
-                     className="h-full bg-blue-600 rounded-full transition-all duration-1000 ease-out relative" 
-                     style={{ width: `${Math.min(100, progress)}%` }}
+                     className="h-full rounded-full transition-all duration-1000 ease-out relative" 
+                     style={{ width: `${Math.min(100, progress)}%`, backgroundColor: secondaryColor }}
                    >
                      <div className="absolute inset-0 bg-white/20 w-full h-full animate-pulse"></div>
                    </div>
@@ -576,7 +594,7 @@ const FinanceView: React.FC<{
        <div className="bg-white rounded-[2.5rem] shadow-sm shadow-slate-200/50 border border-slate-100 overflow-hidden">
           <div className="p-8 border-b border-slate-50 flex justify-between items-center">
              <h3 className="font-bold text-xl text-slate-900">Historique des transactions</h3>
-             <button className="text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl transition-colors">Tout exporter</button>
+             <button className="text-sm font-bold hover:bg-slate-50 px-4 py-2 rounded-xl transition-colors" style={{ color: secondaryColor }}>Tout exporter</button>
           </div>
           
           {sortedPayments.length === 0 ? (
@@ -585,7 +603,7 @@ const FinanceView: React.FC<{
                    <CreditCard className="h-6 w-6 text-slate-300" />
                 </div>
                 <p className="text-slate-500 mb-2">Aucune transaction enregistrée.</p>
-                <button onClick={() => setShowPaymentForm(true)} className="text-blue-600 font-bold hover:underline">Encaisser mon premier patient</button>
+                <button onClick={() => setShowPaymentForm(true)} className="font-bold hover:underline" style={{ color: secondaryColor }}>Encaisser mon premier patient</button>
              </div>
           ) : (
              <div className="overflow-x-auto">
@@ -644,7 +662,7 @@ const Generator: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // Setup Form State
-  const [setupData, setSetupData] = useState<Partial<FormData>>({ clinicName: '', category: '', specialty: '', primaryColor: '#0f172a' }); 
+  const [setupData, setSetupData] = useState<Partial<FormData>>({ clinicName: '', category: '', specialty: '', primaryColor: '#0f172a', secondaryColor: '#3b82f6' }); 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Dashboard Active Tab
@@ -696,13 +714,14 @@ const Generator: React.FC = () => {
           clinicName: setupData.clinicName || '',
           category: setupData.category || 'Médecins généralistes',
           specialty: finalSpecialty,
-          primaryColor: setupData.primaryColor || '#000000',
+          primaryColor: setupData.primaryColor || '#0f172a',
+          secondaryColor: setupData.secondaryColor || '#3b82f6',
           logo: logoPreview
         },
         patients: aiData.recentPatients,
         appointments: aiData.upcomingAppointments,
         payments: [], // Initialize empty payments
-        monthlyGoal: 500000, // Default goal 500k DA
+        monthlyGoal: 0, // Default goal 0 DA (Fresh start)
         dashboardStats: { kpis: aiData.kpis, monthly: aiData.monthlyPatients, distribution: aiData.revenueDistribution, recommendations: aiData.recommendations }
       };
 
@@ -824,10 +843,36 @@ const Generator: React.FC = () => {
                  )}
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Couleur Primaire</label>
+                    <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl">
+                       <input 
+                         type="color" 
+                         className="h-10 w-full rounded-xl cursor-pointer border-none bg-transparent"
+                         value={setupData.primaryColor}
+                         onChange={e => setSetupData({...setupData, primaryColor: e.target.value})}
+                       />
+                    </div>
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Couleur Secondaire</label>
+                    <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl">
+                       <input 
+                         type="color" 
+                         className="h-10 w-full rounded-xl cursor-pointer border-none bg-transparent"
+                         value={setupData.secondaryColor}
+                         onChange={e => setSetupData({...setupData, secondaryColor: e.target.value})}
+                       />
+                    </div>
+                 </div>
+              </div>
+
               <button 
                 type="submit"
                 disabled={!setupData.category || !setupData.clinicName}
-                className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all hover:-translate-y-1 shadow-xl shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full py-5 text-white rounded-2xl font-bold text-lg hover:opacity-90 transition-all hover:-translate-y-1 shadow-xl shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                style={{ backgroundColor: setupData.primaryColor }}
               >
                 Initialiser le Dashboard
               </button>
@@ -846,7 +891,7 @@ const Generator: React.FC = () => {
       <aside className="w-72 bg-white m-6 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 flex flex-col hidden md:flex sticky top-6 h-[calc(100vh-3rem)] overflow-hidden border border-slate-50">
         <div className="p-8">
            <div className="flex items-center gap-4 mb-12">
-              <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-slate-200" style={{backgroundColor: '#0f172a'}}>
+              <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-slate-200" style={{backgroundColor: db.branding.primaryColor}}>
                    {db.branding.clinicName.charAt(0)}
               </div>
               <div>
@@ -897,7 +942,7 @@ const Generator: React.FC = () => {
                   <span className="absolute top-3 right-3 h-2 w-2 bg-red-500 rounded-full border-2 border-white"></span>
                </button>
                <div className="flex items-center gap-3 pl-2 pr-4 py-2 bg-white rounded-full shadow-sm border border-slate-100 cursor-pointer hover:shadow-md transition-all">
-                  <div className="h-9 w-9 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                  <div className="h-9 w-9 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: db.branding.primaryColor }}>
                      Dr
                   </div>
                   <ChevronDown className="h-4 w-4 text-slate-400" />
@@ -944,15 +989,15 @@ const Generator: React.FC = () => {
                               <AreaChart data={db.dashboardStats.monthly}>
                                 <defs>
                                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#0f172a" stopOpacity={0.1}/>
-                                    <stop offset="95%" stopColor="#0f172a" stopOpacity={0}/>
+                                    <stop offset="5%" stopColor={db.branding.primaryColor} stopOpacity={0.1}/>
+                                    <stop offset="95%" stopColor={db.branding.primaryColor} stopOpacity={0}/>
                                   </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} />
                                 <RechartsTooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -5px rgba(0,0,0,0.1)'}} />
-                                <Area type="monotone" dataKey="value" stroke="#0f172a" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                                <Area type="monotone" dataKey="value" stroke={db.branding.primaryColor} strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
                               </AreaChart>
                            </ResponsiveContainer>
                          )}
@@ -971,7 +1016,7 @@ const Generator: React.FC = () => {
                               <PieChart>
                                 <Pie data={db.dashboardStats.distribution} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" cornerRadius={6}>
                                   {db.dashboardStats.distribution.map((entry: any, index: number) => (
-                                    <Cell key={`cell-${index}`} fill={['#0f172a', '#334155', '#94a3b8'][index % 3]} strokeWidth={0} />
+                                    <Cell key={`cell-${index}`} fill={[db.branding.primaryColor, db.branding.secondaryColor, '#94a3b8'][index % 3]} strokeWidth={0} />
                                   ))}
                                 </Pie>
                                 <RechartsTooltip contentStyle={{borderRadius: '12px', border: 'none'}} />
@@ -983,7 +1028,7 @@ const Generator: React.FC = () => {
                           {db.dashboardStats.distribution.map((d: any, i: number) => (
                              <div key={i} className="flex justify-between items-center text-sm">
                                 <span className="text-slate-500 font-medium flex items-center">
-                                   <div className="w-2.5 h-2.5 rounded-full mr-3" style={{backgroundColor: ['#0f172a', '#334155', '#94a3b8'][i % 3]}}></div>
+                                   <div className="w-2.5 h-2.5 rounded-full mr-3" style={{backgroundColor: [db.branding.primaryColor, db.branding.secondaryColor, '#94a3b8'][i % 3]}}></div>
                                    {d.name}
                                 </span>
                                 <span className="font-bold text-slate-900">{d.value}%</span>
@@ -994,8 +1039,8 @@ const Generator: React.FC = () => {
                  </div>
                  
                  {/* Recommendations Section */}
-                 <div className="bg-slate-900 text-white rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl shadow-slate-900/10">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-[120px] opacity-20 transform translate-x-1/3 -translate-y-1/3"></div>
+                 <div className="text-white rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl shadow-slate-900/10" style={{ backgroundColor: db.branding.primaryColor }}>
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-[120px] opacity-10 transform translate-x-1/3 -translate-y-1/3"></div>
                     <div className="relative z-10">
                        <div className="flex items-center gap-4 mb-8">
                           <div className="p-2.5 bg-white/10 rounded-xl backdrop-blur-md">
@@ -1039,6 +1084,7 @@ const Generator: React.FC = () => {
                <FinanceView 
                   db={db} 
                   color={db.branding.primaryColor} 
+                  secondaryColor={db.branding.secondaryColor}
                   onAddPayment={p => updateDb({ payments: [p, ...db.payments] })}
                   onUpdateGoal={g => updateDb({ monthlyGoal: g })}
                   onDeletePayment={id => updateDb({ payments: db.payments.filter(p => p.id !== id) })}
@@ -1057,6 +1103,36 @@ const Generator: React.FC = () => {
                             value={db.branding.clinicName}
                             onChange={(e) => updateDb({ branding: { ...db.branding, clinicName: e.target.value } })}
                           />
+                       </div>
+                       
+                       <div>
+                          <label className="block text-sm font-bold text-slate-900 mb-4">Couleurs de l'interface</label>
+                          <div className="flex gap-8">
+                             <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Primaire</label>
+                                <div className="flex items-center gap-3">
+                                   <input 
+                                     type="color" 
+                                     value={db.branding.primaryColor}
+                                     onChange={(e) => updateDb({ branding: { ...db.branding, primaryColor: e.target.value } })}
+                                     className="h-10 w-20 rounded cursor-pointer border-none bg-transparent"
+                                   />
+                                   <span className="text-xs font-mono bg-slate-50 px-2 py-1 rounded">{db.branding.primaryColor}</span>
+                                </div>
+                             </div>
+                             <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Secondaire</label>
+                                <div className="flex items-center gap-3">
+                                   <input 
+                                     type="color" 
+                                     value={db.branding.secondaryColor}
+                                     onChange={(e) => updateDb({ branding: { ...db.branding, secondaryColor: e.target.value } })}
+                                     className="h-10 w-20 rounded cursor-pointer border-none bg-transparent"
+                                   />
+                                   <span className="text-xs font-mono bg-slate-50 px-2 py-1 rounded">{db.branding.secondaryColor}</span>
+                                </div>
+                             </div>
+                          </div>
                        </div>
                     </div>
                  </div>
@@ -1080,7 +1156,7 @@ const Generator: React.FC = () => {
          <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none">
             {isChatOpen && (
                <div className="mb-4 w-80 md:w-96 h-[550px] bg-white rounded-[2rem] shadow-2xl shadow-blue-900/10 border border-slate-100 pointer-events-auto flex flex-col animate-fade-in-up overflow-hidden">
-                  <div className="p-5 bg-slate-900 text-white flex justify-between items-center">
+                  <div className="p-5 text-white flex justify-between items-center" style={{ backgroundColor: db.branding.primaryColor }}>
                      <div className="flex items-center gap-3">
                         <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
                            <Bot className="h-5 w-5" />
@@ -1103,9 +1179,11 @@ const Generator: React.FC = () => {
                         <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                            <div className={`max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm ${
                               msg.role === 'user' 
-                                 ? 'bg-slate-900 text-white rounded-br-none' 
+                                 ? 'text-white rounded-br-none' 
                                  : 'bg-white border border-slate-100 text-slate-700 rounded-bl-none'
-                           }`}>
+                           }`}
+                           style={msg.role === 'user' ? { backgroundColor: db.branding.primaryColor } : {}}
+                           >
                               {msg.text}
                            </div>
                         </div>
@@ -1134,7 +1212,8 @@ const Generator: React.FC = () => {
                      <button 
                         type="submit" 
                         disabled={!chatInput.trim() || isChatLoading}
-                        className="p-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-lg shadow-slate-200"
+                        className="p-3 text-white rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-lg shadow-slate-200"
+                        style={{ backgroundColor: db.branding.primaryColor }}
                      >
                         <Send className="h-4 w-4" />
                      </button>
@@ -1144,7 +1223,8 @@ const Generator: React.FC = () => {
             
             <button 
                onClick={() => setIsChatOpen(!isChatOpen)}
-               className="pointer-events-auto p-4 bg-slate-900 text-white rounded-full shadow-2xl shadow-slate-900/30 hover:scale-110 transition-all duration-300"
+               className="pointer-events-auto p-4 text-white rounded-full shadow-2xl shadow-slate-900/30 hover:scale-110 transition-all duration-300"
+               style={{ backgroundColor: db.branding.primaryColor }}
             >
                {isChatOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
             </button>
