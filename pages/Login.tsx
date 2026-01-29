@@ -6,12 +6,19 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (method: 'google' | 'email') => {
+  const [email, setEmail] = useState('');
+
+  const handleLogin = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!email) {
+      alert("Veuillez saisir votre email");
+      return;
+    }
     setIsLoading(true);
-    // Simulate API delay
+    // Simulation d'une authentification réelle
     setTimeout(() => {
       localStorage.setItem('medic_pro_auth', 'true');
-      localStorage.setItem('medic_pro_user_email', 'dr.demo@medecin.dz');
+      localStorage.setItem('medic_pro_user_email', email);
       setIsLoading(false);
       navigate('/generator');
     }, 1500);
@@ -35,10 +42,10 @@ const Login: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100">
-          
+
           {/* Google Login Button */}
           <button
-            onClick={() => handleLogin('google')}
+            onClick={() => handleLogin()}
             disabled={isLoading}
             className="w-full flex justify-center items-center px-4 py-3 border border-slate-300 shadow-sm text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all mb-6"
           >
@@ -78,7 +85,7 @@ const Login: React.FC = () => {
             </div>
           </div>
 
-          <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); handleLogin('email'); }}>
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                 Email professionnel
@@ -91,8 +98,11 @@ const Login: React.FC = () => {
                   type="email"
                   name="email"
                   id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-slate-300 rounded-xl py-3"
                   placeholder="dr.nom@clinique.dz"
+                  required
                 />
               </div>
             </div>

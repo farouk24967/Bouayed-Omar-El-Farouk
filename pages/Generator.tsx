@@ -14,7 +14,10 @@ import {
 } from 'recharts';
 
 // --- PERSISTENCE HELPER ---
-const DB_KEY = 'medic_pro_db_v1';
+const getDbKey = () => {
+  const email = localStorage.getItem('medic_pro_user_email') || 'anonymous';
+  return `medic_pro_db_${email}`;
+};
 
 // --- MEDICAL CATEGORIES DATA ---
 const MEDICAL_HIERARCHY: Record<string, string[]> = {
@@ -77,12 +80,12 @@ interface DatabaseSchema {
 }
 
 const loadDatabase = (): DatabaseSchema | null => {
-  const data = localStorage.getItem(DB_KEY);
+  const data = localStorage.getItem(getDbKey());
   return data ? JSON.parse(data) : null;
 };
 
 const saveDatabase = (data: DatabaseSchema) => {
-  localStorage.setItem(DB_KEY, JSON.stringify(data));
+  localStorage.setItem(getDbKey(), JSON.stringify(data));
 };
 
 // --- COMPONENTS ---
@@ -91,8 +94,8 @@ const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active: bool
   <button
     onClick={onClick}
     className={`w-full flex items-center space-x-3 px-5 py-4 rounded-2xl transition-all duration-300 group mb-1 ${active
-        ? 'text-white shadow-lg shadow-slate-200'
-        : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'
+      ? 'text-white shadow-lg shadow-slate-200'
+      : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'
       }`}
     style={{ backgroundColor: active ? color : 'transparent' }}
   >
@@ -623,8 +626,8 @@ const FinanceView: React.FC<{
                     <td className="px-6 py-5 font-bold text-slate-900">{p.patientName}</td>
                     <td className="px-6 py-5">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${p.method === 'Espèces' ? 'bg-green-50 text-green-700 border-green-100' :
-                          p.method === 'Carte' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                            'bg-slate-50 text-slate-600 border-slate-100'
+                        p.method === 'Carte' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                          'bg-slate-50 text-slate-600 border-slate-100'
                         }`}>
                         {p.method}
                       </span>
@@ -1203,7 +1206,7 @@ const Generator: React.FC = () => {
                 <h3 className="font-bold text-2xl text-red-600 mb-4">Zone de danger</h3>
                 <p className="text-slate-500 mb-8 text-sm leading-relaxed">Attention, la réinitialisation effacera toutes vos données locales. Cette action est irréversible.</p>
                 <button
-                  onClick={() => { if (confirm('Tout effacer ?')) { localStorage.removeItem(DB_KEY); window.location.reload(); } }}
+                  onClick={() => { if (confirm('Tout effacer ?')) { localStorage.removeItem(getDbKey()); window.location.reload(); } }}
                   className="w-full py-4 border border-red-100 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center shadow-sm"
                 >
                   <RotateCcw className="h-4 w-4 mr-2" />
@@ -1240,8 +1243,8 @@ const Generator: React.FC = () => {
                 {chatMessages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm ${msg.role === 'user'
-                        ? 'text-white rounded-br-none'
-                        : 'bg-white border border-slate-100 text-slate-700 rounded-bl-none'
+                      ? 'text-white rounded-br-none'
+                      : 'bg-white border border-slate-100 text-slate-700 rounded-bl-none'
                       }`}
                       style={msg.role === 'user' ? { backgroundColor: db.branding.primaryColor } : {}}
                     >
