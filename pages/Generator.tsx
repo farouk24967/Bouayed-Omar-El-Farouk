@@ -6,7 +6,7 @@ import {
   Upload, ChevronRight, Download, Share2, Printer, Loader2, Sparkles,
   LayoutDashboard, Users, Calendar, Settings, Plus, Search, Trash2,
   Phone, Clock, FileText, Edit2, X, RotateCcw, CreditCard, LogOut,
-  Bell, HelpCircle, Wallet, MessageCircle, Send, Bot, Stethoscope, ChevronDown, Target, Banknote, ArrowUpRight
+  Bell, HelpCircle, Wallet, MessageCircle, Send, Bot, Stethoscope, ChevronDown, Target, Banknote, ArrowUpRight, Lock
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
